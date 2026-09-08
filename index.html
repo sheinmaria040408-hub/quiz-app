@@ -7,11 +7,66 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<!-- Шапка з назвою застосунку -->
-<!-- Блок поточного питання й варіантів відповіді -->
-<!-- Блок прогресу проходження -->
-<!-- Блок результатів і історії спроб -->
-<!-- Підвал -->
+<header>
+    <h1>Вікторина</h1>
+    <nav>
+        <ul>
+            <li><a href="#current-question">Питання</a></li>
+            <li><a href="#attempts-history">Результати</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <section id="current-question">
+        <h2>Поточне питання</h2>
+        <p>Питання 1 з 5: Який HTML-тег позначає основний унікальний вміст веб-сторінки?</p>
+
+        <form>
+            <fieldset>
+                <legend>Варіанти відповіді:</legend>
+                <div>
+                    <input type="radio" id="option-div" name="answer" value="div">
+                    <label for="option-div">&lt;div&gt;</label>
+                </div>
+                <div>
+                    <input type="radio" id="option-main" name="answer" value="main">
+                    <label for="option-main">&lt;main&gt;</label>
+                </div>
+                <div>
+                    <input type="radio" id="option-section" name="answer" value="section">
+                    <label for="option-section">&lt;section&gt;</label>
+                </div>
+                <div>
+                    <input type="radio" id="option-article" name="answer" value="article">
+                    <label for="option-article">&lt;article&gt;</label>
+                </div>
+            </fieldset>
+            <button type="submit">Відповісти</button>
+        </form>
+    </section>
+    
+    <section id="attempts-history">
+        <h2>Історія спроб</h2>
+
+        <article>
+            <h3>Спроба від 08.09.2026</h3>
+            <p>Тема: <strong>Семантичний HTML5</strong></p>
+            <p>Результат: <strong>4 / 5</strong> правильних відповідей (80%)</p>
+        </article>
+
+        <article>
+            <h3>Спроба від 05.09.2026</h3>
+            <p>Тема: <strong>Основи веброзробки</strong></p>
+            <p>Результат: <strong>5 / 5</strong> правильних відповідей (100%)</p>
+        </article>
+    </section>
+</main>
+
+<footer>
+    <p>Розробник: Студентка групи ІП-54 Шейн Марія</p>
+    <p>&copy; 2026 quiz-app. Практикум з програмування веб-застосувань.</p>
+</footer>
 
 <script src="js/app.js"></script>
 </body>
