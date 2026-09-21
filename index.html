@@ -7,66 +7,74 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header>
-    <h1>Вікторина</h1>
-    <nav>
-        <ul>
-            <li><a href="#current-question">Питання</a></li>
-            <li><a href="#attempts-history">Результати</a></li>
-        </ul>
-    </nav>
+<header class="header">
+    <div class="container">
+        <h1 class="header__title">Вікторина</h1>
+        <nav class="nav">
+            <ul class="nav__list">
+                <li class="nav__item"><a href="#current-question" class="nav__link">Питання</a></li>
+                <li class="nav__item"><a href="#attempts-history" class="nav__link">Результати</a></li>
+            </ul>
+        </nav>
+    </div>
 </header>
 
-<main>
-    <section id="current-question">
+<main class="main container">
+    <section id="current-question" class="quiz-card">
         <h2>Поточне питання</h2>
-        <p>Питання 1 з 5: Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі встановленням
-            з'єднання?</p>
+        <p class="quiz-card__question">Питання 1 з 5: Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі встановленням з'єднання?</p>
 
-        <form>
-            <fieldset>
-                <legend>Варіанти відповіді:</legend>
-                <div>
+        <form class="quiz-form">
+            <fieldset class="quiz-form__fieldset">
+                <legend class="visually-hidden">Варіанти відповіді</legend>
+
+                <label class="answer-option" for="proto-udp">
                     <input type="radio" id="proto-udp" name="answer" value="udp">
-                    <label for="proto-udp">UDP</label>
-                </div>
-                <div>
+                    <span class="answer-option__text">UDP</span>
+                </label>
+
+                <label class="answer-option" for="proto-tcp">
                     <input type="radio" id="proto-tcp" name="answer" value="tcp">
-                    <label for="proto-tcp">TCP</label>
-                </div>
-                <div>
+                    <span class="answer-option__text">TCP</span>
+                </label>
+
+                <label class="answer-option" for="proto-ip">
                     <input type="radio" id="proto-ip" name="answer" value="ip">
-                    <label for="proto-ip">IP</label>
-                </div>
-                <div>
+                    <span class="answer-option__text">IP</span>
+                </label>
+
+                <label class="answer-option" for="proto-icmp">
                     <input type="radio" id="proto-icmp" name="answer" value="icmp">
-                    <label for="proto-icmp">ICMP</label>
-                </div>
+                    <span class="answer-option__text">ICMP</span>
+                </label>
             </fieldset>
-            <button type="submit">Відповісти</button>
+
+            <button type="submit" class="btn-submit">Відповісти</button>
         </form>
     </section>
 
-    <section id="attempts-history">
+    <section id="attempts-history" class="history-section">
         <h2>Історія спроб</h2>
 
-        <article>
+        <article class="history-card">
             <h3>Спроба від 07.09.2026</h3>
             <p>Тема: <strong>Мережеві моделі OSI та TCP/IP</strong></p>
-            <p>Результат: <strong>5 / 5</strong> правильних відповідей (100%)</p>
+            <p class="history-card__score">Результат: <strong>5 / 5</strong> правильних відповідей (100%)</p>
         </article>
 
-        <article>
+        <article class="history-card">
             <h3>Спроба від 03.09.2026</h3>
             <p>Тема: <strong>Маршрутизація та IP-адресація</strong></p>
-            <p>Результат: <strong>3 / 5</strong> правильних відповідей (60%)</p>
+            <p class="history-card__score">Результат: <strong>3 / 5</strong> правильних відповідей (60%)</p>
         </article>
     </section>
 </main>
 
-<footer>
-    <p>Розробник: Студентка групи ІП-54 Шейн Марія</p>
-    <p>&copy; 2026 quiz-app. Практикум з програмування веб-застосувань.</p>
+<footer class="footer">
+    <div class="container">
+        <p>Розробник: Студентка групи ІП-54 Шейн Марія</p>
+        <p>&copy; 2026 quiz-app. Практикум з програмування веб-застосувань.</p>
+    </div>
 </footer>
 
 <script src="js/app.js"></script>
