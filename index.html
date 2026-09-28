@@ -3,86 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вікторина</title>
+    <title>Вікторина | Quiz Arena</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <header class="header">
     <div class="container header__container">
-        <h1 class="header__title">Вікторина</h1>
+        <div class="header__brand">
+            <span class="header__logo-icon" aria-hidden="true">⚡</span>
+            <div>
+                <h1 class="header__title">QuizPulse</h1>
+                <span class="header__subtitle">Варіант 8 • Комп'ютерні мережі</span>
+            </div>
+        </div>
         <nav class="nav">
             <ul class="nav__list">
-                <li class="nav__item"><a href="#current-question" class="nav__link">Питання</a></li>
-                <li class="nav__item"><a href="#attempts-history" class="nav__link">Результати</a></li>
+                <li class="nav__item"><a href="#current-question" class="nav__link nav__link--active">Тестування</a>
+                </li>
+                <li class="nav__item"><a href="#attempts-history" class="nav__link">Журнал спроб</a></li>
             </ul>
         </nav>
     </div>
 </header>
 
 <main class="main container">
-
     <section id="current-question" class="quiz-card">
-        <h2>Поточне питання</h2>
-        <p class="quiz-card__question">Питання 1 з 5: Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі встановленням з'єднання?</p>
+        <div class="quiz-meta-panel">
+            <div class="quiz-badge-group">
+                <span class="status-pill status-pill--live">LIVE РАНЕР</span>
+                <span class="status-pill status-pill--category">Транспортний рівень OSI</span>
+            </div>
+            <div class="quiz-counter">
+                <span class="quiz-counter__current">01</span>
+                <span class="quiz-counter__divider">/</span>
+                <span class="quiz-counter__total">05</span>
+            </div>
+        </div>
+
+        <div class="quiz-progress-track" aria-label="Смуга проходження тесту">
+            <div class="quiz-progress-track__fill" style="width: 25%;"></div>
+        </div>
+
+        <h2 class="quiz-card__prompt">Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі
+            встановленням з'єднання?</h2>
 
         <form class="quiz-form">
             <fieldset class="quiz-form__fieldset answers-grid">
                 <legend class="visually-hidden">Варіанти відповіді</legend>
 
-                <label class="answer-option" for="proto-udp">
+                <label class="answer-card" for="proto-udp">
                     <input type="radio" id="proto-udp" name="answer" value="udp">
-                    <span class="answer-option__text">UDP</span>
+                    <div class="answer-card__body">
+                        <span class="answer-card__key">A</span>
+                        <div class="answer-card__content">
+                            <span class="answer-card__title">UDP</span>
+                            <span class="answer-card__desc">User Datagram Protocol (без встановлення сесії)</span>
+                        </div>
+                    </div>
                 </label>
 
-                <label class="answer-option" for="proto-tcp">
-                    <input type="radio" id="proto-tcp" name="answer" value="tcp">
-                    <span class="answer-option__text">TCP</span>
+                <label class="answer-card answer-card--checked" for="proto-tcp">
+                    <input type="radio" id="proto-tcp" name="answer" value="tcp" checked>
+                    <div class="answer-card__body">
+                        <span class="answer-card__key">B</span>
+                        <div class="answer-card__content">
+                            <span class="answer-card__title">TCP</span>
+                            <span class="answer-card__desc">Transmission Control Protocol (гарантований потік)</span>
+                        </div>
+                    </div>
                 </label>
 
-                <label class="answer-option" for="proto-ip">
+                <label class="answer-card" for="proto-ip">
                     <input type="radio" id="proto-ip" name="answer" value="ip">
-                    <span class="answer-option__text">IP</span>
+                    <div class="answer-card__body">
+                        <span class="answer-card__key">C</span>
+                        <div class="answer-card__content">
+                            <span class="answer-card__title">IP</span>
+                            <span class="answer-card__desc">Internet Protocol (мережевий рівень)</span>
+                        </div>
+                    </div>
                 </label>
 
-                <label class="answer-option" for="proto-icmp">
+                <label class="answer-card" for="proto-icmp">
                     <input type="radio" id="proto-icmp" name="answer" value="icmp">
-                    <span class="answer-option__text">ICMP</span>
+                    <div class="answer-card__body">
+                        <span class="answer-card__key">D</span>
+                        <div class="answer-card__content">
+                            <span class="answer-card__title">ICMP</span>
+                            <span class="answer-card__desc">Internet Control Message Protocol (діагностика)</span>
+                        </div>
+                    </div>
                 </label>
             </fieldset>
 
-            <button type="submit" class="btn-submit">Відповісти</button>
+            <div class="validation-alert validation-alert--success" role="status">
+                <span class="validation-alert__icon" aria-hidden="true">✔</span>
+                <div class="validation-alert__details">
+                    <strong>Відповідь верифіковано:</strong>
+                    <span>TCP здійснює триетапне рукостискання (SYN, SYN-ACK, ACK) і контролює доставку.</span>
+                </div>
+            </div>
+
+            <div class="quiz-form__actions">
+                <button type="submit" class="btn-primary">
+                    <span>Підтвердити вибір</span>
+                    <span class="btn-primary__arrow" aria-hidden="true">→</span>
+                </button>
+            </div>
         </form>
     </section>
 
     <section id="attempts-history" class="history-section">
-        <h2>Історія спроб</h2>
+        <div class="history-section__bar">
+            <div>
+                <h2 class="history-section__heading">Журнал попередніх спроб</h2>
+                <p class="history-section__subheading">Збережені сесії проходження тестів за курсом</p>
+            </div>
+            <span class="history-chip">Всього спроб: 3</span>
+        </div>
 
         <div class="history-grid">
-            <article class="history-card">
-                <h3>Спроба від 07.09.2026</h3>
-                <p>Тема: <strong>Мережеві моделі OSI</strong></p>
-                <p class="history-card__score">Результат: <strong>5 / 5</strong> (100%)</p>
+            <article class="session-card session-card--optimal">
+                <div class="session-card__tag">
+                    <span class="session-card__bullet" aria-hidden="true"></span>
+                    <span>Успішно завершено</span>
+                </div>
+                <h3 class="session-card__title">Мережеві моделі OSI</h3>
+                <div class="session-card__metrics">
+                    <span class="metric-score">5 <small>/ 5</small></span>
+                    <span class="metric-percent metric-percent--high">100%</span>
+                </div>
+                <footer class="session-card__footer">
+                    <time datetime="2026-09-24">24 вересня 2026</time>
+                    <span class="session-card__time">03:45 хв</span>
+                </footer>
             </article>
 
-            <article class="history-card">
-                <h3>Спроба від 03.09.2026</h3>
-                <p>Тема: <strong>IP-адресація</strong></p>
-                <p class="history-card__score">Результат: <strong>3 / 5</strong> (60%)</p>
+            <article class="session-card session-card--warning">
+                <div class="session-card__tag">
+                    <span class="session-card__bullet" aria-hidden="true"></span>
+                    <span>Потребує повторення</span>
+                </div>
+                <h3 class="session-card__title">IP-адресація та підмережі</h3>
+                <div class="session-card__metrics">
+                    <span class="metric-score">4 <small>/ 5</small></span>
+                    <span class="metric-percent metric-percent--mid">80%</span>
+                </div>
+                <footer class="session-card__footer">
+                    <time datetime="2026-09-18">18 вересня 2026</time>
+                    <span class="session-card__time">04:12 хв</span>
+                </footer>
             </article>
 
-            <article class="history-card">
-                <h3>Спроба від 28.08.2026</h3>
-                <p>Тема: <strong>Основи маршрутизації</strong></p>
-                <p class="history-card__score">Результат: <strong>4 / 5</strong> (80%)</p>
+            <article class="session-card session-card--critical">
+                <div class="session-card__tag">
+                    <span class="session-card__bullet" aria-hidden="true"></span>
+                    <span>Низький бал</span>
+                </div>
+                <h3 class="session-card__title">Маршрутизація трафіку</h3>
+                <div class="session-card__metrics">
+                    <span class="metric-score">2 <small>/ 5</small></span>
+                    <span class="metric-percent metric-percent--low">40%</span>
+                </div>
+                <footer class="session-card__footer">
+                    <time datetime="2026-09-10">10 вересня 2026</time>
+                    <span class="session-card__time">02:50 хв</span>
+                </footer>
             </article>
         </div>
     </section>
 </main>
 
 <footer class="footer">
-    <div class="container">
-        <p>Розробник: Студентка групи ІП-54 Шейн Марія</p>
-        <p>&copy; 2026 quiz-app. Практикум з програмування веб-застосувань.</p>
+    <div class="container footer__container">
+        <div class="footer__student">
+            <span class="footer__dot"></span>
+            <p>Розробник: Студентка гр. ІП-54 Шейн Марія</p>
+        </div>
+        <p class="footer__copy">&copy; 2026 quiz-app • Лабораторний практикум з веброзробки</p>
     </div>
 </footer>
 
