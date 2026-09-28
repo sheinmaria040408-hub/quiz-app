@@ -8,7 +8,7 @@
 </head>
 <body>
 <header class="header">
-    <div class="container">
+    <div class="container header__container">
         <h1 class="header__title">Вікторина</h1>
         <nav class="nav">
             <ul class="nav__list">
@@ -20,12 +20,13 @@
 </header>
 
 <main class="main container">
+
     <section id="current-question" class="quiz-card">
         <h2>Поточне питання</h2>
         <p class="quiz-card__question">Питання 1 з 5: Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі встановленням з'єднання?</p>
 
         <form class="quiz-form">
-            <fieldset class="quiz-form__fieldset">
+            <fieldset class="quiz-form__fieldset answers-grid">
                 <legend class="visually-hidden">Варіанти відповіді</legend>
 
                 <label class="answer-option" for="proto-udp">
@@ -56,17 +57,25 @@
     <section id="attempts-history" class="history-section">
         <h2>Історія спроб</h2>
 
-        <article class="history-card">
-            <h3>Спроба від 07.09.2026</h3>
-            <p>Тема: <strong>Мережеві моделі OSI та TCP/IP</strong></p>
-            <p class="history-card__score">Результат: <strong>5 / 5</strong> правильних відповідей (100%)</p>
-        </article>
+        <div class="history-grid">
+            <article class="history-card">
+                <h3>Спроба від 07.09.2026</h3>
+                <p>Тема: <strong>Мережеві моделі OSI</strong></p>
+                <p class="history-card__score">Результат: <strong>5 / 5</strong> (100%)</p>
+            </article>
 
-        <article class="history-card">
-            <h3>Спроба від 03.09.2026</h3>
-            <p>Тема: <strong>Маршрутизація та IP-адресація</strong></p>
-            <p class="history-card__score">Результат: <strong>3 / 5</strong> правильних відповідей (60%)</p>
-        </article>
+            <article class="history-card">
+                <h3>Спроба від 03.09.2026</h3>
+                <p>Тема: <strong>IP-адресація</strong></p>
+                <p class="history-card__score">Результат: <strong>3 / 5</strong> (60%)</p>
+            </article>
+
+            <article class="history-card">
+                <h3>Спроба від 28.08.2026</h3>
+                <p>Тема: <strong>Основи маршрутизації</strong></p>
+                <p class="history-card__score">Результат: <strong>4 / 5</strong> (80%)</p>
+            </article>
+        </div>
     </section>
 </main>
 
