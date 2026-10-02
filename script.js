@@ -1,5 +1,7 @@
+// Verify script connection
 console.log('script.js підключено успішно!');
 
+// Variant 8 quiz dataset
 const quizQuestions = [
     {
         question: 'Який протокол забезпечує надійну доставку зі встановленням з’єднання?',
@@ -23,8 +25,10 @@ const quizQuestions = [
     }
 ];
 
+// Arrow function to calculate score percentage
 const calcScorePercent = (correctCount, total) => Math.round((correctCount / total) * 100);
 
+// Simulate quiz run using for...of loop and if/else conditions
 function runQuizSimulation(questions) {
     console.log('Початок тестування: Комп’ютерні мережі');
 
@@ -32,12 +36,12 @@ function runQuizSimulation(questions) {
 
     let correctCount = 0;
     let index = 0;
-
+// Iterate over questions array
     for (const item of questions) {
         const currentUserAnswer = userAnswers[index];
         console.log(`Питання ${index + 1}: ${item.question}`);
         console.log(`Відповідь користувача: "${currentUserAnswer}" | Правильна відповідь: "${item.answer}"`);
-
+// Strict comparison check
         if (currentUserAnswer.toLowerCase() === item.answer.toLowerCase()) {
             console.log('Статус: Правильно');
             correctCount++;
@@ -47,6 +51,7 @@ function runQuizSimulation(questions) {
         index++;
     }
 
+    // Calculate and display final results
     const totalQuestions = questions.length;
     const scorePercent = calcScorePercent(correctCount, totalQuestions);
 
