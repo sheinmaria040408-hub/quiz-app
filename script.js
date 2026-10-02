@@ -1,4 +1,4 @@
-// Verify script connection
+//  Verify script connection
 console.log('script.js підключено успішно!');
 
 // Variant 8 quiz dataset
@@ -28,20 +28,18 @@ const quizQuestions = [
 // Arrow function to calculate score percentage
 const calcScorePercent = (correctCount, total) => Math.round((correctCount / total) * 100);
 
-// Simulate quiz run using for...of loop and if/else conditions
+// Quiz simulation in console
 function runQuizSimulation(questions) {
-    console.log('Початок тестування: Комп’ютерні мережі');
-
+    console.log('Початок тестування: Комп’ютерні мережі ');
     const userAnswers = ['TCP', 'DHCP', 'Канальний', '443', 'DNS'];
-
     let correctCount = 0;
     let index = 0;
-// Iterate over questions array
+
     for (const item of questions) {
         const currentUserAnswer = userAnswers[index];
         console.log(`Питання ${index + 1}: ${item.question}`);
         console.log(`Відповідь користувача: "${currentUserAnswer}" | Правильна відповідь: "${item.answer}"`);
-// Strict comparison check
+
         if (currentUserAnswer.toLowerCase() === item.answer.toLowerCase()) {
             console.log('Статус: Правильно');
             correctCount++;
@@ -51,12 +49,46 @@ function runQuizSimulation(questions) {
         index++;
     }
 
-    // Calculate and display final results
     const totalQuestions = questions.length;
     const scorePercent = calcScorePercent(correctCount, totalQuestions);
-
     console.log(`Підсумок тесту: ${correctCount} з ${totalQuestions} правильних відповідей.`);
     console.log(`Успішність склала: ${scorePercent}%`);
 }
 
 runQuizSimulation(quizQuestions);
+
+// Remove static placeholder
+const staticPlaceholder = document.querySelector('#static-placeholder');
+if (staticPlaceholder) {
+    staticPlaceholder.remove();
+}
+
+//  Select DOM elements
+const listContainer = document.querySelector('#questions-list');
+const questionsCount = document.querySelector('#questions-count');
+
+// Render questions list into DOM
+function renderQuestions(questions) {
+    listContainer.innerHTML = '';
+
+    questions.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.classList.add('questions-list__item');
+        li.textContent = `${index + 1}. ${item.question}`;
+        li.dataset.answer = item.answer;
+
+        if (index < 2) {
+            li.classList.add('answered');
+        }
+
+        listContainer.append(li);
+    });
+}
+
+// Initial render
+renderQuestions(quizQuestions);
+
+// Update total count
+if (questionsCount) {
+    questionsCount.textContent = `Усього активних питань у базі: ${quizQuestions.length}`;
+}
