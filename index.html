@@ -32,82 +32,89 @@
         <div class="quiz-meta-panel">
             <div class="quiz-badge-group">
                 <span class="status-pill status-pill--live">LIVE РАНЕР</span>
-                <span class="status-pill status-pill--category">Транспортний рівень OSI</span>
+                <span id="quiz-category" class="status-pill status-pill--category">Транспортний рівень OSI</span>
             </div>
             <div class="quiz-counter">
-                <span class="quiz-counter__current">01</span>
+                <span id="quiz-counter-current" class="quiz-counter__current">01</span>
                 <span class="quiz-counter__divider">/</span>
-                <span class="quiz-counter__total">05</span>
+                <span id="quiz-counter-total" class="quiz-counter__total">05</span>
             </div>
         </div>
 
         <div class="quiz-progress-track" aria-label="Смуга проходження тесту">
-            <div class="quiz-progress-track__fill" style="width: 25%;"></div>
+            <div id="quiz-progress-fill" class="quiz-progress-track__fill" style="width: 20%;"></div>
         </div>
 
-        <h2 class="quiz-card__prompt">Який протокол транспортного рівня забезпечує гарантовану доставку пакетів зі
-            встановленням з'єднання?</h2>
+        <h2 id="quiz-prompt" class="quiz-card__prompt">Який протокол забезпечує надійну доставку зі встановленням
+            з’єднання?</h2>
 
-        <form class="quiz-form">
-            <fieldset class="quiz-form__fieldset answers-grid">
+        <!-- Форма 8-ї практичної роботи -->
+        <form id="quiz-form" class="quiz-form">
+            <fieldset id="answers-grid" class="quiz-form__fieldset answers-grid">
                 <legend class="visually-hidden">Варіанти відповіді</legend>
 
                 <label class="answer-card" for="proto-udp">
-                    <input type="radio" id="proto-udp" name="answer" value="udp">
+                    <input type="radio" id="proto-udp" name="answer" value="UDP" required>
                     <div class="answer-card__body">
                         <span class="answer-card__key">A</span>
                         <div class="answer-card__content">
                             <span class="answer-card__title">UDP</span>
-                            <span class="answer-card__desc">User Datagram Protocol (без встановлення сесії)</span>
+                            <span class="answer-card__desc">User Datagram Protocol</span>
                         </div>
                     </div>
                 </label>
 
-                <label class="answer-card answer-card--checked" for="proto-tcp">
-                    <input type="radio" id="proto-tcp" name="answer" value="tcp" checked>
+                <label class="answer-card" for="proto-tcp">
+                    <input type="radio" id="proto-tcp" name="answer" value="TCP" required>
                     <div class="answer-card__body">
                         <span class="answer-card__key">B</span>
                         <div class="answer-card__content">
                             <span class="answer-card__title">TCP</span>
-                            <span class="answer-card__desc">Transmission Control Protocol (гарантований потік)</span>
+                            <span class="answer-card__desc">Transmission Control Protocol</span>
                         </div>
                     </div>
                 </label>
 
                 <label class="answer-card" for="proto-ip">
-                    <input type="radio" id="proto-ip" name="answer" value="ip">
+                    <input type="radio" id="proto-ip" name="answer" value="IP" required>
                     <div class="answer-card__body">
                         <span class="answer-card__key">C</span>
                         <div class="answer-card__content">
                             <span class="answer-card__title">IP</span>
-                            <span class="answer-card__desc">Internet Protocol (мережевий рівень)</span>
+                            <span class="answer-card__desc">Internet Protocol</span>
                         </div>
                     </div>
                 </label>
 
                 <label class="answer-card" for="proto-icmp">
-                    <input type="radio" id="proto-icmp" name="answer" value="icmp">
+                    <input type="radio" id="proto-icmp" name="answer" value="ICMP" required>
                     <div class="answer-card__body">
                         <span class="answer-card__key">D</span>
                         <div class="answer-card__content">
                             <span class="answer-card__title">ICMP</span>
-                            <span class="answer-card__desc">Internet Control Message Protocol (діагностика)</span>
+                            <span class="answer-card__desc">Internet Control Message Protocol</span>
                         </div>
                     </div>
                 </label>
             </fieldset>
 
-            <div class="validation-alert validation-alert--success" role="status">
-                <span class="validation-alert__icon" aria-hidden="true">✔</span>
+            <div id="validation-alert" class="validation-alert" role="status" style="display: none;">
+                <span id="alert-icon" class="validation-alert__icon" aria-hidden="true">✔</span>
                 <div class="validation-alert__details">
-                    <strong>Відповідь верифіковано:</strong>
-                    <span>TCP здійснює триетапне рукостискання (SYN, SYN-ACK, ACK) і контролює доставку.</span>
+                    <strong id="alert-title">Відповідь верифіковано:</strong>
+                    <span id="alert-text">Результат перевірки відобразиться тут.</span>
                 </div>
             </div>
 
             <div class="quiz-form__actions">
-                <button type="submit" class="btn-primary">
+                <button type="submit" id="submit-btn" class="btn-primary">
                     <span>Підтвердити вибір</span>
+                    <span class="btn-primary__arrow" aria-hidden="true">→</span>
+                </button>
+
+                <button type="button" id="next-btn" class="btn-primary"
+                        style="display: none; background-color: var(--brand-purple);">
+                    <span>Наступне питання</span>
                     <span class="btn-primary__arrow" aria-hidden="true">→</span>
                 </button>
             </div>
@@ -121,10 +128,10 @@
                 <p id="questions-count" class="history-section__subheading">Завантаження кількості питань...</p>
             </div>
         </div>
-        
+
         <ul id="questions-list" class="questions-list">
             <li id="static-placeholder" class="questions-list__item questions-list__item--placeholder">
-                Статична заглушка: завантаження переліку питань з бази...
+                Завантаження переліку питань з бази...
             </li>
         </ul>
     </section>
@@ -200,6 +207,5 @@
     </div>
 </footer>
 
-<script src="js/app.js"></script>
 </body>
 </html>
