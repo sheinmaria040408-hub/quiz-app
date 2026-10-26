@@ -28,7 +28,7 @@ const quizQuestions = [
 // Arrow function to calculate score percentage
 const calcScorePercent = (correctCount, total) => Math.round((correctCount / total) * 100);
 
-// Console simulation (Lab 6)
+// Console simulation
 function runQuizSimulation(questions) {
     console.log('Початок тестування: Комп’ютерні мережі');
     const userAnswers = ['TCP', 'DHCP', 'Канальний', '443', 'DNS'];
@@ -93,31 +93,36 @@ if (questionsCount) {
     questionsCount.textContent = `Усього активних питань у базі: ${quizQuestions.length}`;
 }
 
-// Extended dataset for interactive form navigation
+// Extended dataset for interactive form navigation (Lab 8)
 const interactiveQuestions = [
     {
         question: 'Який протокол забезпечує надійну доставку зі встановленням з’єднання?',
         options: ['UDP', 'TCP', 'IP', 'ICMP'],
+        descriptions: ['User Datagram Protocol', 'Transmission Control Protocol', 'Internet Protocol', 'Internet Control Message Protocol'],
         answer: 'TCP'
     },
     {
         question: 'Який протокол використовується для автоматичного отримання IP-адрес?',
         options: ['DNS', 'DHCP', 'ARP', 'FTP'],
+        descriptions: ['Domain Name System', 'Dynamic Host Configuration Protocol', 'Address Resolution Protocol', 'File Transfer Protocol'],
         answer: 'DHCP'
     },
     {
         question: 'На якому рівні моделі OSI працює протокол IP?',
         options: ['Канальний', 'Мережевий', 'Транспортний', 'Прикладний'],
+        descriptions: ['Data Link Layer', 'Network Layer', 'Transport Layer', 'Application Layer'],
         answer: 'Мережевий'
     },
     {
         question: 'Який порт за замовчуванням використовує безпечний протокол HTTPS?',
         options: ['80', '21', '443', '22'],
+        descriptions: ['HTTP Port', 'FTP Port', 'HTTPS Port', 'SSH Port'],
         answer: '443'
     },
     {
         question: 'Який протокол транслює доменні імена у числові IP-адреси?',
         options: ['DHCP', 'DNS', 'HTTP', 'SNMP'],
+        descriptions: ['Dynamic Host Config', 'Domain Name System', 'Hypertext Transfer', 'Simple Network Management'],
         answer: 'DNS'
     }
 ];
@@ -134,7 +139,6 @@ const alertIcon = document.querySelector('#alert-icon');
 const alertTitle = document.querySelector('#alert-title');
 const alertText = document.querySelector('#alert-text');
 
-// Helper function to update question UI
 // Helper function to update question UI
 function loadQuestion(index) {
     const currentQ = interactiveQuestions[index];
@@ -154,13 +158,17 @@ function loadQuestion(index) {
     radioInputs.forEach((input, idx) => {
         input.value = currentQ.options[idx];
         input.checked = false;
-        input.required = true; // Гарантуємо наявність required для валідації браузером
+        input.required = true; // Нативна валідація браузера
 
         const parentLabel = input.closest('.answer-card');
         if (parentLabel) {
             parentLabel.classList.remove('answer-card--checked');
             const titleSpan = parentLabel.querySelector('.answer-card__title');
             if (titleSpan) titleSpan.textContent = currentQ.options[idx];
+            const descSpan = parentLabel.querySelector('.answer-card__desc');
+            if (descSpan) {
+                descSpan.textContent = currentQ.descriptions ? currentQ.descriptions[idx] : '';
+            }
         }
     });
 
@@ -181,13 +189,13 @@ if (quizForm) {
 
     // Step 2 & 3: Handle form submit and prevent reload
     quizForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
         const selectedRadio = quizForm.querySelector('input[name="answer"]:checked');
 
         if (!selectedRadio) {
             return;
         }
-
-        event.preventDefault();
 
         const selectedValue = selectedRadio.value;
         const currentQ = interactiveQuestions[currentQuestionIndex];
@@ -212,16 +220,14 @@ if (quizForm) {
     });
 }
 
-// Step 9: Second event - Click handler for "Next Question" button
+// Step 9: Click handler for "Next Question" button
 if (nextBtn) {
     nextBtn.addEventListener('click', () => {
         currentQuestionIndex++;
         if (currentQuestionIndex < interactiveQuestions.length) {
-            // Step 7: Reset form and load next question
             quizForm.reset();
             loadQuestion(currentQuestionIndex);
         } else {
-            // Final state after all questions are answered
             quizForm.reset();
             const promptTitle = document.querySelector('#quiz-prompt');
             if (promptTitle) {
