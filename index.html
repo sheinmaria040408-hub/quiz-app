@@ -124,8 +124,24 @@
     <section class="questions-catalog" aria-labelledby="catalog-title">
         <div class="history-section__bar">
             <div>
-                <h2 id="catalog-title" class="history-section__heading">База питань тесту</h2>
-                <p id="questions-count" class="history-section__subheading">Завантаження кількості питань...</p>
+                <h2 id="catalog-title" class="history-section__heading">База питань (Open Trivia API)</h2>
+                <p id="questions-count" class="history-section__subheading">Завантаження питань з сервера...</p>
+            </div>
+
+            <button type="button" id="fetch-btn" class="btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">
+                🔄 Оновити з API
+            </button>
+        </div>
+
+        <div id="loading-spinner" class="loading-state" style="display: none; padding: 20px; text-align: center;">
+            <p>⏳ Завантаження актуальних питань з сервера Open Trivia Database...</p>
+        </div>
+
+        <div id="error-message" class="validation-alert validation-alert--error" style="display: none; margin-bottom: 20px;">
+            <span class="validation-alert__icon" aria-hidden="true">⚠️</span>
+            <div class="validation-alert__details">
+                <strong>Помилка завантаження:</strong>
+                <span id="error-text">Не вдалося отримати питання. Перевірте з'єднання з мережею.</span>
             </div>
         </div>
 

@@ -237,3 +237,95 @@ if (nextBtn) {
 
 // Initial load of the first question
 loadQuestion(0);
+
+// API Endpoint Constant
+const TRIVIA_API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+
+// Helper function to decode HTML entities
+function decodeHTMLEntities(text) {
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+}
+
+// Select DOM elements for API integration
+const fetchBtn = document.querySelector('#fetch-btn');
+const loadingSpinner = document.querySelector('#loading-spinner');
+const errorMessage = document.querySelector('#error-message');
+const errorText = document.querySelector('#error-text');
+
+// Async function to load data from API
+async function loadData() {
+    // Step 7: Show loading state, hide previous errors
+    if (loadingSpinner) loadingSpinner.style.display = 'block';
+    if (errorMessage) errorMessage.style.display = 'none';
+    if (fetchBtn) fetchBtn.disabled = true;
+
+    try {
+        // Execute fetch request
+        const response = await fetch(TRIVIA_API_URL);
+
+        // Check HTTP response status
+        if (!response.ok) {
+            throw new Error(`Сервер відповів кодом помилки ${response.status}`);
+        }
+
+        // Parse JSON body
+        const data = await response.json();
+
+        // Check Open Trivia DB response code (0 = Success)
+        if (data.response_code !== 0) {
+            throw new Error('API повернуло порожній або некоректний результат');
+        }
+
+        // Map API fields & decode HTML entities
+        const apiQuestions = data.results.map((item) => ({
+            question: decodeHTMLEntities(item.question),
+            answer: decodeHTMLEntities(item.correct_answer),
+            options: [
+                ...item.incorrect_answers.map(decodeHTMLEntities),
+                decodeHTMLEntities(item.correct_answer)
+            ].sort(() => Math.random() - 0.5)
+        }));
+
+        // Render received items to DOM
+        renderQuestions(apiQuestions);
+
+        // Update total counter
+        if (questionsCount) {
+            questionsCount.textContent = `Завантажено з Open Trivia API: ${apiQuestions.length} питань`;
+        }
+
+        if (typeof interactiveQuestions !== 'undefined') {
+            interactiveQuestions.length = 0;
+            interactiveQuestions.push(...apiQuestions);
+            currentQuestionIndex = 0;
+            loadQuestion(0);
+        }
+
+        console.log('Дані успішно отримано з API:', apiQuestions);
+
+    } catch (error) {
+        console.error('Помилка виконання fetch-запиту:', error);
+
+        if (errorMessage) {
+            errorMessage.style.display = 'flex';
+            if (errorText) {
+                errorText.textContent = 'Не вдалося завантажити питання з сервера. Перевірте зєднання з інтернетом або спробуйте пізніше.';
+            }
+        }
+    } finally {
+        // Disable loading state regardless of outcome
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        if (fetchBtn) fetchBtn.disabled = false;
+    }
+}
+
+// Event listener for "Refresh" button
+if (fetchBtn) {
+    fetchBtn.addEventListener('click', () => {
+        loadData();
+    });
+}
+
+loadData();
