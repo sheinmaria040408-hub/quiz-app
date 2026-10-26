@@ -1,7 +1,5 @@
 // Vue 3 забезпечує декларативну реактивність, зрозумілий синтаксис шаблонів і підключається за допомогою одного тегу <script> без складного налаштування середовища збірки.
-console.log('script.js підключено успішно !');
-// Helper function to calculate score percentage
-const calcScorePercent = (correctCount, total) => Math.round((correctCount / total) * 100);
+console.log('script.js підключено успішно!');
 
 // Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
@@ -14,11 +12,11 @@ const QuizQuestion = {
     props: {
         question: String,
         options: Array,
-        correctAnswer: String,
+        correctIndex: Number,
         currentIndex: Number,
         totalQuestions: Number
     },
-    emits: ['select-answer', 'next-step'],
+    emits: ['answer', 'next-step'],
     data() {
         return {
             selectedIndex: null,
@@ -29,9 +27,7 @@ const QuizQuestion = {
         submitChoice() {
             if (this.selectedIndex === null) return;
             this.submitted = true;
-            const chosenOption = this.options[this.selectedIndex];
-            const isCorrect = chosenOption.toLowerCase() === this.correctAnswer.toLowerCase();
-            this.$emit('select-answer', {isCorrect});
+            this.$emit('answer', this.selectedIndex);
         },
         resetState() {
             this.selectedIndex = null;
@@ -85,11 +81,12 @@ const QuizQuestion = {
                         </div>
                     </label>
                 </fieldset>
-                <div v-if="submitted" class="validation-alert" :class="selectedIndex !== null && options[selectedIndex].toLowerCase() === correctAnswer.toLowerCase() ? 'validation-alert--success' : 'validation-alert--error'">
-                    <span class="validation-alert__icon">{{ options[selectedIndex].toLowerCase() === correctAnswer.toLowerCase() ? '✔' : '✕' }}</span>
+
+                <div v-if="submitted" class="validation-alert" :class="selectedIndex === correctIndex ? 'validation-alert--success' : 'validation-alert--error'">
+                    <span class="validation-alert__icon">{{ selectedIndex === correctIndex ? '✔' : '✕' }}</span>
                     <div class="validation-alert__details">
-                        <strong>{{ options[selectedIndex].toLowerCase() === correctAnswer.toLowerCase() ? 'Правильно!' : 'Неправильно!' }}</strong>
-                        <span>Правильна відповідь: {{ correctAnswer }}</span>
+                        <strong>{{ selectedIndex === correctIndex ? 'Правильно!' : 'Неправильно!' }}</strong>
+                        <span>Правильна відповідь: {{ options[correctIndex] }}</span>
                     </div>
                 </div>
 
@@ -120,32 +117,35 @@ const app = createApp({
                 {
                     question: 'Який протокол забезпечує надійну доставку зі встановленням з’єднання?',
                     options: ['UDP', 'TCP', 'IP', 'ICMP'],
-                    answer: 'TCP'
+                    correctIndex: 1
                 },
                 {
                     question: 'Який протокол використовується для автоматичного отримання IP-адрес?',
                     options: ['DNS', 'DHCP', 'ARP', 'FTP'],
-                    answer: 'DHCP'
+                    correctIndex: 1
                 },
                 {
                     question: 'На якому рівні моделі OSI працює протокол IP?',
                     options: ['Канальний', 'Мережевий', 'Транспортний', 'Прикладний'],
-                    answer: 'Мережевий'
+                    correctIndex: 1
                 },
                 {
                     question: 'Який порт за замовчуванням використовує безпечний протокол HTTPS?',
                     options: ['80', '21', '443', '22'],
-                    answer: '443'
+                    correctIndex: 2
                 },
                 {
                     question: 'Який протокол транслює доменні імена у числові IP-адреси?',
                     options: ['DHCP', 'DNS', 'HTTP', 'SNMP'],
-                    answer: 'DNS'
+                    correctIndex: 1
                 }
             ],
+            apiQuestionsList: [],
             currentQuestionIndex: 0,
             userScore: 0,
-            quizFinished: false
+            quizFinished: false,
+            loading: false,
+            errorMessage: ''
         };
     },
     computed: {
@@ -155,10 +155,11 @@ const app = createApp({
     },
     methods: {
         calcScorePercent(score, total) {
-            return calcScorePercent(score, total);
+            return Math.round((score / total) * 100);
         },
-        handleAnswer(payload) {
-            if (payload.isCorrect) {
+        // Обробка вибору: батьківський компонент звіряє selectedIndex з correctIndex
+        handleAnswer(selectedIndex) {
+            if (selectedIndex === this.currentQuestion.correctIndex) {
                 this.userScore++;
             }
         },
@@ -173,94 +174,48 @@ const app = createApp({
             this.currentQuestionIndex = 0;
             this.userScore = 0;
             this.quizFinished = false;
+        },
+        // Завантаження даних з Open Trivia API
+        async fetchApiQuestions() {
+            this.loading = true;
+            this.errorMessage = '';
+            const TRIVIA_API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+
+            try {
+                const response = await fetch(TRIVIA_API_URL);
+                if (!response.ok) throw new Error(`Сервер відповів кодом помилки ${response.status}`);
+
+                const data = await response.json();
+                if (data.response_code !== 0) throw new Error('API повернуло порожній результат');
+
+                const mapped = data.results.map((item) => {
+                    const decodedCorrect = decodeHTMLEntities(item.correct_answer);
+                    const decodedIncorrect = item.incorrect_answers.map(decodeHTMLEntities);
+
+                    const options = [...decodedIncorrect, decodedCorrect].sort(() => Math.random() - 0.5);
+                    const correctIndex = options.indexOf(decodedCorrect);
+
+                    return {
+                        question: decodeHTMLEntities(item.question),
+                        options,
+                        correctIndex
+                    };
+                });
+
+                this.apiQuestionsList = mapped;
+                this.interactiveQuestions = mapped;
+                this.resetQuiz();
+            } catch (err) {
+                console.error(err);
+                this.errorMessage = 'Не вдалося завантажити питання з сервера. Перевірте зʼєднання з інтернетом.';
+            } finally {
+                this.loading = false;
+            }
         }
+    },
+    mounted() {
+        this.fetchApiQuestions();
     }
 });
 
-const vm = app.mount('#vue-app');
-
-const TRIVIA_API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
-
-const fetchBtn = document.querySelector('#fetch-btn');
-const loadingSpinner = document.querySelector('#loading-spinner');
-const errorMessage = document.querySelector('#error-message');
-const errorText = document.querySelector('#error-text');
-const questionsCount = document.querySelector('#questions-count');
-const listContainer = document.querySelector('#questions-list');
-
-function renderQuestions(questions) {
-    if (!listContainer) return;
-    listContainer.innerHTML = '';
-
-    questions.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.classList.add('questions-list__item');
-        li.textContent = `${index + 1}. ${item.question}`;
-        li.dataset.answer = item.answer;
-
-        if (index < 2) {
-            li.classList.add('answered');
-        }
-
-        listContainer.append(li);
-    });
-}
-
-async function loadData() {
-    if (loadingSpinner) loadingSpinner.style.display = 'block';
-    if (errorMessage) errorMessage.style.display = 'none';
-    if (fetchBtn) fetchBtn.disabled = true;
-
-    try {
-        const response = await fetch(TRIVIA_API_URL);
-
-        if (!response.ok) {
-            throw new Error(`Сервер відповів кодом помилки ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.response_code !== 0) {
-            throw new Error('API повернуло порожній або некоректний результат');
-        }
-
-        const apiQuestions = data.results.map((item) => ({
-            question: decodeHTMLEntities(item.question),
-            answer: decodeHTMLEntities(item.correct_answer),
-            options: [
-                ...item.incorrect_answers.map(decodeHTMLEntities),
-                decodeHTMLEntities(item.correct_answer)
-            ].sort(() => Math.random() - 0.5)
-        }));
-
-        renderQuestions(apiQuestions);
-
-        if (questionsCount) {
-            questionsCount.textContent = `Завантажено з Open Trivia API: ${apiQuestions.length} питань`;
-        }
-
-        vm.interactiveQuestions = apiQuestions;
-        vm.resetQuiz();
-
-    } catch (error) {
-        console.error('Помилка виконання fetch-запиту:', error);
-
-        if (errorMessage) {
-            errorMessage.style.display = 'flex';
-            if (errorText) {
-                errorText.textContent = 'Не вдалося завантажити питання з сервера. Перевірте зєднання з інтернетом або спробуйте пізніше.';
-            }
-        }
-    } finally {
-        if (loadingSpinner) loadingSpinner.style.display = 'none';
-        if (fetchBtn) fetchBtn.disabled = false;
-    }
-}
-
-if (fetchBtn) {
-    fetchBtn.addEventListener('click', () => {
-        loadData();
-    });
-}
-
-loadData();
+app.mount('#vue-app');

@@ -35,12 +35,13 @@
                 ref="quizChild"
                 :question="currentQuestion.question"
                 :options="currentQuestion.options"
-                :correct-answer="currentQuestion.answer"
+                :correct-index="currentQuestion.correctIndex"
                 :current-index="currentQuestionIndex"
                 :total-questions="interactiveQuestions.length"
                 @next-step="nextQuestionUI"
-                @select-answer="handleAnswer">
+                @answer="handleAnswer">
         </quiz-question>
+
         <div v-else class="quiz-completed" style="text-align: center; padding: 30px;">
             <h2>🎉 Тест завершено!</h2>
             <p style="font-size: 1.2rem; margin: 15px 0;">
@@ -55,30 +56,34 @@
         <div class="history-section__bar">
             <div>
                 <h2 id="catalog-title" class="history-section__heading">База питань (Open Trivia API)</h2>
-                <p id="questions-count" class="history-section__subheading">Завантаження питань з сервера...</p>
+                <p class="history-section__subheading">
+                    {{ loading ? 'Завантаження питань з сервера...' : 'Завантажено з Open Trivia API: ' + apiQuestionsList.length + ' питань'
+                    }}
+                </p>
             </div>
 
-            <button type="button" id="fetch-btn" class="btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">
+            <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 0.9rem;"
+                    @click="fetchApiQuestions" :disabled="loading">
                 🔄 Оновити з API
             </button>
         </div>
 
-        <div id="loading-spinner" class="loading-state" style="display: none; padding: 20px; text-align: center;">
+        <div v-if="loading" class="loading-state" style="padding: 20px; text-align: center;">
             <p>⏳ Завантаження актуальних питань з сервера Open Trivia Database...</p>
         </div>
 
-        <div id="error-message" class="validation-alert validation-alert--error"
-             style="display: none; margin-bottom: 20px;">
+        <div v-if="errorMessage" class="validation-alert validation-alert--error" style="margin-bottom: 20px;">
             <span class="validation-alert__icon" aria-hidden="true">⚠️</span>
             <div class="validation-alert__details">
                 <strong>Помилка завантаження:</strong>
-                <span id="error-text">Не вдалося отримати питання. Перевірте з'єднання з мережею.</span>
+                <span>{{ errorMessage }}</span>
             </div>
         </div>
 
-        <ul id="questions-list" class="questions-list">
-            <li id="static-placeholder" class="questions-list__item questions-list__item--placeholder">
-                Завантаження переліку питань з бази...
+        <ul class="questions-list">
+            <li v-for="(q, index) in apiQuestionsList" :key="index" class="questions-list__item"
+                :class="{ 'answered': index < 2 }">
+                {{ index + 1 }}. {{ q.question }}
             </li>
         </ul>
     </section>
