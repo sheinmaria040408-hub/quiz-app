@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вікторина | Quiz Arena</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -27,98 +28,27 @@
     </div>
 </header>
 
-<main class="main container">
+<main class="main container" id="vue-app">
     <section id="current-question" class="quiz-card">
-        <div class="quiz-meta-panel">
-            <div class="quiz-badge-group">
-                <span class="status-pill status-pill--live">LIVE РАНЕР</span>
-                <span id="quiz-category" class="status-pill status-pill--category">Транспортний рівень OSI</span>
-            </div>
-            <div class="quiz-counter">
-                <span id="quiz-counter-current" class="quiz-counter__current">01</span>
-                <span class="quiz-counter__divider">/</span>
-                <span id="quiz-counter-total" class="quiz-counter__total">05</span>
-            </div>
+        <quiz-question
+                v-if="!quizFinished"
+                ref="quizChild"
+                :question="currentQuestion.question"
+                :options="currentQuestion.options"
+                :correct-answer="currentQuestion.answer"
+                :current-index="currentQuestionIndex"
+                :total-questions="interactiveQuestions.length"
+                @next-step="nextQuestionUI"
+                @select-answer="handleAnswer">
+        </quiz-question>
+        <div v-else class="quiz-completed" style="text-align: center; padding: 30px;">
+            <h2>🎉 Тест завершено!</h2>
+            <p style="font-size: 1.2rem; margin: 15px 0;">
+                Ваш результат: <strong>{{ userScore }}</strong> з <strong>{{ interactiveQuestions.length }}</strong>
+                ({{ calcScorePercent(userScore, interactiveQuestions.length) }}%)
+            </p>
+            <button type="button" class="btn-primary" @click="resetQuiz">Пройти знову 🔄</button>
         </div>
-
-        <div class="quiz-progress-track" aria-label="Смуга проходження тесту">
-            <div id="quiz-progress-fill" class="quiz-progress-track__fill" style="width: 20%;"></div>
-        </div>
-
-        <h2 id="quiz-prompt" class="quiz-card__prompt">Який протокол забезпечує надійну доставку зі встановленням
-            з’єднання?</h2>
-
-        <!-- Форма 8-ї практичної роботи -->
-        <form id="quiz-form" class="quiz-form">
-            <fieldset id="answers-grid" class="quiz-form__fieldset answers-grid">
-                <legend class="visually-hidden">Варіанти відповіді</legend>
-
-                <label class="answer-card" for="proto-udp">
-                    <input type="radio" id="proto-udp" name="answer" value="UDP" required>
-                    <div class="answer-card__body">
-                        <span class="answer-card__key">A</span>
-                        <div class="answer-card__content">
-                            <span class="answer-card__title">UDP</span>
-                            <span class="answer-card__desc">User Datagram Protocol</span>
-                        </div>
-                    </div>
-                </label>
-
-                <label class="answer-card" for="proto-tcp">
-                    <input type="radio" id="proto-tcp" name="answer" value="TCP" required>
-                    <div class="answer-card__body">
-                        <span class="answer-card__key">B</span>
-                        <div class="answer-card__content">
-                            <span class="answer-card__title">TCP</span>
-                            <span class="answer-card__desc">Transmission Control Protocol</span>
-                        </div>
-                    </div>
-                </label>
-
-                <label class="answer-card" for="proto-ip">
-                    <input type="radio" id="proto-ip" name="answer" value="IP" required>
-                    <div class="answer-card__body">
-                        <span class="answer-card__key">C</span>
-                        <div class="answer-card__content">
-                            <span class="answer-card__title">IP</span>
-                            <span class="answer-card__desc">Internet Protocol</span>
-                        </div>
-                    </div>
-                </label>
-
-                <label class="answer-card" for="proto-icmp">
-                    <input type="radio" id="proto-icmp" name="answer" value="ICMP" required>
-                    <div class="answer-card__body">
-                        <span class="answer-card__key">D</span>
-                        <div class="answer-card__content">
-                            <span class="answer-card__title">ICMP</span>
-                            <span class="answer-card__desc">Internet Control Message Protocol</span>
-                        </div>
-                    </div>
-                </label>
-            </fieldset>
-
-            <div id="validation-alert" class="validation-alert" role="status" style="display: none;">
-                <span id="alert-icon" class="validation-alert__icon" aria-hidden="true">✔</span>
-                <div class="validation-alert__details">
-                    <strong id="alert-title">Відповідь верифіковано:</strong>
-                    <span id="alert-text">Результат перевірки відобразиться тут.</span>
-                </div>
-            </div>
-
-            <div class="quiz-form__actions">
-                <button type="submit" id="submit-btn" class="btn-primary">
-                    <span>Підтвердити вибір</span>
-                    <span class="btn-primary__arrow" aria-hidden="true">→</span>
-                </button>
-
-                <button type="button" id="next-btn" class="btn-primary"
-                        style="display: none; background-color: var(--brand-purple);">
-                    <span>Наступне питання</span>
-                    <span class="btn-primary__arrow" aria-hidden="true">→</span>
-                </button>
-            </div>
-        </form>
     </section>
 
     <section class="questions-catalog" aria-labelledby="catalog-title">
@@ -137,7 +67,8 @@
             <p>⏳ Завантаження актуальних питань з сервера Open Trivia Database...</p>
         </div>
 
-        <div id="error-message" class="validation-alert validation-alert--error" style="display: none; margin-bottom: 20px;">
+        <div id="error-message" class="validation-alert validation-alert--error"
+             style="display: none; margin-bottom: 20px;">
             <span class="validation-alert__icon" aria-hidden="true">⚠️</span>
             <div class="validation-alert__details">
                 <strong>Помилка завантаження:</strong>
