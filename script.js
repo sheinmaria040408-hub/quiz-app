@@ -1,11 +1,120 @@
-// Vue 3 забезпечує декларативну реактивність, зрозумілий синтаксис шаблонів і підключається за допомогою одного тегу <script> без складного налаштування середовища збірки.
-console.log('script.js підключено успішно!');
+console.log('script.js підключено успішно (Лабораторна 11 - localStorage & IndexedDB)!');
+
 
 // Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
     return textArea.value;
+}
+
+// Функції роботи з localStorage
+const LOCAL_STORAGE_KEY = 'quiz_pulse_results';
+
+function saveToLocalStorage(results) {
+    try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(results));
+    } catch (error) {
+        console.error('Помилка збереження у localStorage:', error);
+    }
+}
+
+function loadFromLocalStorage() {
+    try {
+        const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (error) {
+        console.error('Пошкоджені дані в localStorage:', error);
+        return [];
+    }
+}
+
+// Функції роботи з IndexedDB
+const DB_NAME = 'QuizPulseDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'results';
+
+// Відкриття бази даних з обгорткою у Promise
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+            reject(new Error('Ваш браузер не підтримує IndexedDB.'));
+            return;
+        }
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME, {keyPath: 'id', autoIncrement: true});
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// додавання запису результату
+async function addResultDB(resultItem) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const itemToSave = {...resultItem};
+        if (!itemToSave.id) delete itemToSave.id;
+
+        store.put(itemToSave);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// отримання всіх записів результатів
+async function getAllResultsDB() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// видалення запису за id
+async function deleteResultDB(id) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(id);
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function migrateLocalStorageToIndexedDB() {
+    try {
+        const isMigrated = localStorage.getItem('quiz_pulse_migrated');
+        if (isMigrated) return;
+
+        const dbResults = await getAllResultsDB();
+        const localResults = loadFromLocalStorage();
+
+        if (dbResults.length === 0 && localResults.length > 0) {
+            console.log('Виконується міграція даних з localStorage в IndexedDB...');
+            for (const item of localResults) {
+                await addResultDB(item);
+            }
+        }
+        localStorage.setItem('quiz_pulse_migrated', 'true');
+    } catch (error) {
+        console.error('Помилка під час міграції даних:', error);
+    }
 }
 
 const QuizQuestion = {
@@ -42,7 +151,6 @@ const QuizQuestion = {
         <div class="quiz-question-component">
             <div class="quiz-meta-panel">
                 <div class="quiz-badge-group">
-                    <span class="status-pill status-pill--live">VUE 3 COMPONENT</span>
                     <span class="status-pill status-pill--category">Транспортний рівень OSI</span>
                 </div>
                 <div class="quiz-counter">
@@ -145,29 +253,76 @@ const app = createApp({
             userScore: 0,
             quizFinished: false,
             loading: false,
-            errorMessage: ''
+            errorMessage: '',
+            dbErrorMessage: '',
+            savedResults: []
         };
     },
     computed: {
         currentQuestion() {
             return this.interactiveQuestions[this.currentQuestionIndex] || {};
+        },
+        sortedResults() {
+            return [...this.savedResults].sort((a, b) => {
+                const percentA = (a.score / a.total) * 100;
+                const percentB = (b.score / b.total) * 100;
+                return percentB - percentA;
+            });
         }
     },
     methods: {
         calcScorePercent(score, total) {
+            if (!total) return 0;
             return Math.round((score / total) * 100);
         },
-        // Обробка вибору: батьківський компонент звіряє selectedIndex з correctIndex
         handleAnswer(selectedIndex) {
             if (selectedIndex === this.currentQuestion.correctIndex) {
                 this.userScore++;
             }
         },
-        nextQuestionUI() {
+        async nextQuestionUI() {
             if (this.currentQuestionIndex < this.interactiveQuestions.length - 1) {
                 this.currentQuestionIndex++;
             } else {
                 this.quizFinished = true;
+                await this.saveQuizSession();
+            }
+        },
+        async saveQuizSession() {
+            const newRecord = {
+                date: new Date().toLocaleString('uk-UA'),
+                score: this.userScore,
+                total: this.interactiveQuestions.length
+            };
+
+            const localList = loadFromLocalStorage();
+            localList.push(newRecord);
+            saveToLocalStorage(localList);
+
+            try {
+                await addResultDB(newRecord);
+                await this.loadResultsFromDB();
+            } catch (err) {
+                console.error('Не вдалося зберегти результат в IndexedDB:', err);
+            }
+        },
+        async loadResultsFromDB() {
+            try {
+                this.savedResults = await getAllResultsDB();
+            } catch (err) {
+                console.error('Помилка завантаження з IndexedDB:', err);
+                this.dbErrorMessage = 'Не вдалося відкрити IndexedDB. Режим приватного перегляду або обмеження браузера.';
+                this.savedResults = loadFromLocalStorage();
+            }
+        },
+        async removeResult(id) {
+            try {
+                if (id) {
+                    await deleteResultDB(id);
+                }
+                await this.loadResultsFromDB();
+            } catch (err) {
+                console.error('Помилка видалення запису:', err);
             }
         },
         resetQuiz() {
@@ -175,7 +330,6 @@ const app = createApp({
             this.userScore = 0;
             this.quizFinished = false;
         },
-        // Завантаження даних з Open Trivia API
         async fetchApiQuestions() {
             this.loading = true;
             this.errorMessage = '';
@@ -213,7 +367,15 @@ const app = createApp({
             }
         }
     },
-    mounted() {
+    async mounted() {
+        try {
+            await migrateLocalStorageToIndexedDB();
+            await this.loadResultsFromDB();
+        } catch (err) {
+            console.error('Помилка ініціалізації бази даних:', err);
+            this.dbErrorMessage = 'Помилка доступу до локального сховища IndexedDB.';
+        }
+
         this.fetchApiQuestions();
     }
 });

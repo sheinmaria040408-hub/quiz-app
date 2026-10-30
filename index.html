@@ -15,7 +15,6 @@
             <span class="header__logo-icon" aria-hidden="true">⚡</span>
             <div>
                 <h1 class="header__title">QuizPulse</h1>
-                <span class="header__subtitle">Варіант 8 • Комп'ютерні мережі</span>
             </div>
         </div>
         <nav class="nav">
@@ -48,14 +47,14 @@
                 Ваш результат: <strong>{{ userScore }}</strong> з <strong>{{ interactiveQuestions.length }}</strong>
                 ({{ calcScorePercent(userScore, interactiveQuestions.length) }}%)
             </p>
-            <button type="button" class="btn-primary" @click="resetQuiz">Пройти знову 🔄</button>
+            <button type="button" class="btn-primary" @click="resetQuiz">Пройти знову</button>
         </div>
     </section>
 
     <section class="questions-catalog" aria-labelledby="catalog-title">
         <div class="history-section__bar">
             <div>
-                <h2 id="catalog-title" class="history-section__heading">База питань (Open Trivia API)</h2>
+                <h2 id="catalog-title" class="history-section__heading">База питань</h2>
                 <p class="history-section__subheading">
                     {{ loading ? 'Завантаження питань з сервера...' : 'Завантажено з Open Trivia API: ' + apiQuestionsList.length + ' питань'
                     }}
@@ -69,7 +68,7 @@
         </div>
 
         <div v-if="loading" class="loading-state" style="padding: 20px; text-align: center;">
-            <p>⏳ Завантаження актуальних питань з сервера Open Trivia Database...</p>
+            <p>⏳ Завантаження актуальних питань...</p>
         </div>
 
         <div v-if="errorMessage" class="validation-alert validation-alert--error" style="margin-bottom: 20px;">
@@ -91,60 +90,50 @@
     <section id="attempts-history" class="history-section">
         <div class="history-section__bar">
             <div>
-                <h2 class="history-section__heading">Журнал попередніх спроб</h2>
-                <p class="history-section__subheading">Збережені сесії проходження тестів за курсом</p>
+                <h2 class="history-section__heading">Журнал спроб</h2>
+                <p class="history-section__subheading">Збережені результати проходжень тесту</p>
             </div>
-            <span class="history-chip">Всього спроб: 3</span>
+            <span class="history-chip">Всього спроб: {{ savedResults.length }}</span>
         </div>
 
-        <div class="history-grid">
-            <article class="session-card session-card--optimal">
-                <div class="session-card__tag">
-                    <span class="session-card__bullet" aria-hidden="true"></span>
-                    <span>Успішно завершено</span>
-                </div>
-                <h3 class="session-card__title">Мережеві моделі OSI</h3>
-                <div class="session-card__metrics">
-                    <span class="metric-score">5 <small>/ 5</small></span>
-                    <span class="metric-percent metric-percent--high">100%</span>
-                </div>
-                <footer class="session-card__footer">
-                    <time datetime="2026-09-24">24 вересня 2026</time>
-                    <span class="session-card__time">03:45 хв</span>
-                </footer>
-            </article>
+        <div v-if="dbErrorMessage" class="validation-alert validation-alert--error" style="margin-bottom: 20px;">
+            <span class="validation-alert__icon">⚠️</span>
+            <div class="validation-alert__details">
+                <strong>Увага:</strong>
+                <span>{{ dbErrorMessage }}</span>
+            </div>
+        </div>
 
-            <article class="session-card session-card--warning">
+        <div v-if="sortedResults.length > 0" class="history-grid">
+            <article
+                    v-for="(res, idx) in sortedResults"
+                    :key="res.id || idx"
+                    class="session-card"
+                    :class="calcScorePercent(res.score, res.total) >= 80 ? 'session-card--optimal' : (calcScorePercent(res.score, res.total) >= 50 ? 'session-card--warning' : 'session-card--critical')">
                 <div class="session-card__tag">
                     <span class="session-card__bullet" aria-hidden="true"></span>
-                    <span>Потребує повторення</span>
+                    <span>{{ calcScorePercent(res.score, res.total) >= 80 ? 'Високий бал' : 'Потребує повторення'
+                        }}</span>
                 </div>
-                <h3 class="session-card__title">IP-адресація та підмережі</h3>
+                <h3 class="session-card__title">Спроба №{{ res.id || (idx + 1) }}</h3>
                 <div class="session-card__metrics">
-                    <span class="metric-score">4 <small>/ 5</small></span>
-                    <span class="metric-percent metric-percent--mid">80%</span>
+                    <span class="metric-score">{{ res.score }} <small>/ {{ res.total }}</small></span>
+                    <span class="metric-percent">{{ calcScorePercent(res.score, res.total) }}%</span>
                 </div>
-                <footer class="session-card__footer">
-                    <time datetime="2026-09-18">18 вересня 2026</time>
-                    <span class="session-card__time">04:12 хв</span>
+                <footer class="session-card__footer"
+                        style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <time>{{ res.date }}</time>
+                    <button type="button" class="btn-primary"
+                            style="padding: 4px 8px; font-size: 0.8rem; background-color: #e53e3e;"
+                            @click="removeResult(res.id)">
+                        Видалити
+                    </button>
                 </footer>
             </article>
+        </div>
 
-            <article class="session-card session-card--critical">
-                <div class="session-card__tag">
-                    <span class="session-card__bullet" aria-hidden="true"></span>
-                    <span>Низький бал</span>
-                </div>
-                <h3 class="session-card__title">Маршрутизація трафіку</h3>
-                <div class="session-card__metrics">
-                    <span class="metric-score">2 <small>/ 5</small></span>
-                    <span class="metric-percent metric-percent--low">40%</span>
-                </div>
-                <footer class="session-card__footer">
-                    <time datetime="2026-09-10">10 вересня 2026</time>
-                    <span class="session-card__time">02:50 хв</span>
-                </footer>
-            </article>
+        <div v-else style="text-align: center; padding: 20px; color: #718096;">
+            <p>Жодної збереженої спроби в поки немає. Пройдіть тест, щоб зберегти перший результат!</p>
         </div>
     </section>
 </main>
