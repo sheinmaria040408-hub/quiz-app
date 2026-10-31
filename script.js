@@ -1,5 +1,4 @@
-console.log('script.js підключено успішно (Лабораторна 11 - localStorage & IndexedDB)!');
-
+console.log('script.js підключено успішно (Лабораторна 12 - Canvas Timer & Animation)!');
 
 // Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
@@ -129,13 +128,107 @@ const QuizQuestion = {
     data() {
         return {
             selectedIndex: null,
-            submitted: false
+            submitted: false,
+            timeLimit: 15, // 15 секунд на відповідь
+            timeLeft: 15,
+            animationFrameId: null,
+            startTime: null
         };
     },
+    watch: {
+        currentIndex() {
+            this.startTimer();
+        }
+    },
     methods: {
-        submitChoice() {
-            if (this.selectedIndex === null) return;
+        // Запуск анімаційного циклу
+        startTimer() {
+            this.stopTimer();
+            this.timeLeft = this.timeLimit;
+            this.startTime = performance.now();
+
+            const draw = (now) => {
+                if (this.submitted) return;
+
+                const elapsed = (now - this.startTime) / 1000;
+                this.timeLeft = Math.max(0, this.timeLimit - elapsed);
+
+                this.renderCanvasTimer();
+
+                if (this.timeLeft > 0) {
+                    this.animationFrameId = requestAnimationFrame(draw);
+                } else {
+                    this.handleTimeOut();
+                }
+            };
+
+            this.animationFrameId = requestAnimationFrame(draw);
+        },
+        stopTimer() {
+            if (this.animationFrameId) {
+                cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = null;
+            }
+        },
+        // Малювання анімованого таймера на Canvas
+        renderCanvasTimer() {
+            const canvas = this.$refs.timerCanvas;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = 32;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Фонове сіре коло
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // Розрахунок кута дуги залишкового часу
+            const progress = this.timeLeft / this.timeLimit;
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (Math.PI * 2 * progress);
+
+            let strokeColor = '#3182ce';
+            if (progress < 0.3) {
+                strokeColor = '#e53e3e';
+            } else if (progress < 0.6) {
+                strokeColor = '#dd6b20';
+            }
+
+            // Кольорова анімована дуга
+            if (progress > 0) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            // Текст із кількістю секунд у центрі Canvas
+            ctx.font = 'bold 16px Inter, sans-serif';
+            ctx.fillStyle = strokeColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${Math.ceil(this.timeLeft)}s`, centerX, centerY);
+        },
+        handleTimeOut() {
+            if (this.submitted) return;
             this.submitted = true;
+            this.stopTimer();
+            this.$emit('answer', -1);
+        },
+        submitChoice() {
+            if (this.selectedIndex === null || this.submitted) return;
+            this.submitted = true;
+            this.stopTimer();
             this.$emit('answer', this.selectedIndex);
         },
         resetState() {
@@ -147,16 +240,27 @@ const QuizQuestion = {
             this.resetState();
         }
     },
+    mounted() {
+        this.startTimer();
+    },
+    beforeUnmount() {
+        this.stopTimer();
+    },
     template: `
         <div class="quiz-question-component">
-            <div class="quiz-meta-panel">
-                <div class="quiz-badge-group">
-                    <span class="status-pill status-pill--category">Транспортний рівень OSI</span>
+            <div class="quiz-meta-panel" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="quiz-badge-group">
+                    </div>
+                    <div class="quiz-counter" style="margin-top: 8px;">
+                        <span class="quiz-counter__current">{{ String(currentIndex + 1).padStart(2, '0') }}</span>
+                        <span class="quiz-counter__divider">/</span>
+                        <span class="quiz-counter__total">{{ String(totalQuestions).padStart(2, '0') }}</span>
+                    </div>
                 </div>
-                <div class="quiz-counter">
-                    <span class="quiz-counter__current">{{ String(currentIndex + 1).padStart(2, '0') }}</span>
-                    <span class="quiz-counter__divider">/</span>
-                    <span class="quiz-counter__total">{{ String(totalQuestions).padStart(2, '0') }}</span>
+
+                <div class="timer-container" style="text-align: center;">
+                    <canvas ref="timerCanvas" width="80" height="80"></canvas>
                 </div>
             </div>
 
@@ -193,7 +297,7 @@ const QuizQuestion = {
                 <div v-if="submitted" class="validation-alert" :class="selectedIndex === correctIndex ? 'validation-alert--success' : 'validation-alert--error'">
                     <span class="validation-alert__icon">{{ selectedIndex === correctIndex ? '✔' : '✕' }}</span>
                     <div class="validation-alert__details">
-                        <strong>{{ selectedIndex === correctIndex ? 'Правильно!' : 'Неправильно!' }}</strong>
+                        <strong>{{ selectedIndex === correctIndex ? 'Правильно!' : (selectedIndex === -1 ? 'Час вийшов!' : 'Неправильно!') }}</strong>
                         <span>Правильна відповідь: {{ options[correctIndex] }}</span>
                     </div>
                 </div>
