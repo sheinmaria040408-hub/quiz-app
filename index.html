@@ -17,18 +17,45 @@
                 <h1 class="header__title">QuizPulse</h1>
             </div>
         </div>
+        <!-- Клієнтське навігаційне меню SPA-->
         <nav class="nav">
             <ul class="nav__list">
-                <li class="nav__item"><a href="#current-question" class="nav__link nav__link--active">Тестування</a>
+                <li class="nav__item">
+                    <a href="#/" class="nav__link" :class="{ 'nav__link--active': currentRoute === '/' }">Головна</a>
                 </li>
-                <li class="nav__item"><a href="#attempts-history" class="nav__link">Журнал спроб</a></li>
+                <li class="nav__item">
+                    <a href="#/quiz" class="nav__link" :class="{ 'nav__link--active': currentRoute === '/quiz' }">Тестування</a>
+                </li>
+                <li class="nav__item">
+                    <a href="#/results" class="nav__link"
+                       :class="{ 'nav__link--active': currentRoute.startsWith('/results') }">Журнал проходжень</a>
+                </li>
             </ul>
         </nav>
     </div>
 </header>
 
 <main class="main container" id="vue-app">
-    <section id="current-question" class="quiz-card">
+
+    <!-- Стартовий екран (/) -->
+    <section v-if="currentRoute === '/'" class="quiz-card" style="text-align: center; padding: 40px 20px;">
+        <h2 style="font-size: 2rem; margin-bottom: 15px;">Ласкаво просимо до QuizPulse! 🎯</h2>
+        <p style="font-size: 1.1rem; color: #4a5568; max-width: 600px; margin: 0 auto 30px auto;">
+            Готові перевірити свої знання з комп'ютерних мереж та протоколів? На кожне запитання дається 15 секунд.
+        </p>
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="#/quiz" class="btn-primary"
+               style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                🚀 Розпочати тестування
+            </a>
+            <a href="#/results" class="btn-primary" style="text-decoration: none; background-color: #4a5568;">
+                📊 Переглянути журнал
+            </a>
+        </div>
+    </section>
+
+    <!--Процес тестування (/quiz) -->
+    <section v-else-if="currentRoute === '/quiz'" class="quiz-card">
         <quiz-question
                 v-if="!quizFinished"
                 ref="quizChild"
@@ -41,59 +68,29 @@
                 @answer="handleAnswer">
         </quiz-question>
 
+        <!-- Фінальний екран результату -->
         <div v-else class="quiz-completed" style="text-align: center; padding: 30px;">
             <h2>🎉 Тест завершено!</h2>
             <p style="font-size: 1.2rem; margin: 15px 0;">
                 Ваш результат: <strong>{{ userScore }}</strong> з <strong>{{ interactiveQuestions.length }}</strong>
                 ({{ calcScorePercent(userScore, interactiveQuestions.length) }}%)
             </p>
-            <button type="button" class="btn-primary" @click="resetQuiz">Пройти знову</button>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-primary" @click="resetQuiz">Пройти знову 🔄</button>
+                <a href="#/results" class="btn-primary" style="text-decoration: none; background-color: #4a5568;">До
+                    журналу 📊</a>
+            </div>
         </div>
     </section>
 
-    <section class="questions-catalog" aria-labelledby="catalog-title">
+    <!-- Журнал спроб (/results) -->
+    <section v-else-if="currentRoute === '/results'" class="history-section">
         <div class="history-section__bar">
             <div>
-                <h2 id="catalog-title" class="history-section__heading">База питань</h2>
-                <p class="history-section__subheading">
-                    {{ loading ? 'Завантаження питань з сервера...' : 'Завантажено з Open Trivia API: ' + apiQuestionsList.length + ' питань'
-                    }}
-                </p>
+                <h2 class="history-section__heading">Журнал проходжень</h2>
+                <p class="history-section__subheading">Збережені результати спроб</p>
             </div>
-
-            <button type="button" class="btn-primary" style="padding: 8px 16px; font-size: 0.9rem;"
-                    @click="fetchApiQuestions" :disabled="loading">
-                🔄 Оновити з API
-            </button>
-        </div>
-
-        <div v-if="loading" class="loading-state" style="padding: 20px; text-align: center;">
-            <p>⏳ Завантаження актуальних питань...</p>
-        </div>
-
-        <div v-if="errorMessage" class="validation-alert validation-alert--error" style="margin-bottom: 20px;">
-            <span class="validation-alert__icon" aria-hidden="true">⚠️</span>
-            <div class="validation-alert__details">
-                <strong>Помилка завантаження:</strong>
-                <span>{{ errorMessage }}</span>
-            </div>
-        </div>
-
-        <ul class="questions-list">
-            <li v-for="(q, index) in apiQuestionsList" :key="index" class="questions-list__item"
-                :class="{ 'answered': index < 2 }">
-                {{ index + 1 }}. {{ q.question }}
-            </li>
-        </ul>
-    </section>
-
-    <section id="attempts-history" class="history-section">
-        <div class="history-section__bar">
-            <div>
-                <h2 class="history-section__heading">Журнал спроб</h2>
-                <p class="history-section__subheading">Збережені результати проходжень тесту</p>
-            </div>
-            <span class="history-chip">Всього спроб: {{ savedResults.length }}</span>
+            <span class="history-chip">Усього збережено: {{ savedResults.length }}</span>
         </div>
 
         <div v-if="dbErrorMessage" class="validation-alert validation-alert--error" style="margin-bottom: 20px;">
@@ -121,21 +118,61 @@
                     <span class="metric-percent">{{ calcScorePercent(res.score, res.total) }}%</span>
                 </div>
                 <footer class="session-card__footer"
-                        style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 15px;">
                     <time>{{ res.date }}</time>
-                    <button type="button" class="btn-primary"
-                            style="padding: 4px 8px; font-size: 0.8rem; background-color: #e53e3e;"
-                            @click="removeResult(res.id)">
-                        Видалити
-                    </button>
+                    <div style="display: flex; gap: 5px;">
+                        <a :href="'#/results/' + res.id" class="btn-primary"
+                           style="padding: 4px 8px; font-size: 0.8rem; text-decoration: none;">Деталі</a>
+                        <button type="button" class="btn-primary"
+                                style="padding: 4px 8px; font-size: 0.8rem; background-color: #e53e3e;"
+                                @click="removeResult(res.id)">✕
+                        </button>
+                    </div>
                 </footer>
             </article>
         </div>
 
-        <div v-else style="text-align: center; padding: 20px; color: #718096;">
-            <p>Жодної збереженої спроби в поки немає. Пройдіть тест, щоб зберегти перший результат!</p>
+        <div v-else style="text-align: center; padding: 30px; color: #718096;">
+            <p>Жодної збереженої спроби поки немає. Пройдіть тест!</p>
+            <a href="#/quiz" class="btn-primary"
+               style="text-decoration: none; margin-top: 15px; display: inline-block;">Розпочати тест 🚀</a>
         </div>
     </section>
+
+    <!--Деталі спроби (/results/:id) -->
+    <section v-else-if="currentRouteParamId" class="quiz-card" style="padding: 30px;">
+        <div v-if="selectedResultDetail">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📋 Деталі спроби №{{ selectedResultDetail.id }}</h2>
+                <a href="#/results" class="btn-primary" style="text-decoration: none; font-size: 0.9rem;">← Назад до
+                    журналу</a>
+            </div>
+            <div style="background: #f7fafc; padding: 20px; border-radius: 8px; line-height: 1.8;">
+                <p><strong>Дата проходження:</strong> {{ selectedResultDetail.date }}</p>
+                <p><strong>Правильних відповідей:</strong> {{ selectedResultDetail.score }} з
+                    {{ selectedResultDetail.total }}</p>
+                <p><strong>Успішність:</strong>
+                    {{ calcScorePercent(selectedResultDetail.score, selectedResultDetail.total) }}%</p>
+                <p><strong>Статус:</strong>
+                    {{ calcScorePercent(selectedResultDetail.score, selectedResultDetail.total) >= 80 ? 'Відмінно ✅' : 'Потребує покращення ⚠️'
+                    }}</p>
+            </div>
+        </div>
+        <div v-else style="text-align: center; padding: 20px;">
+            <p>⚠️ Спробу з ID {{ currentRouteParamId }} не знайдено в локальній базі.</p>
+            <a href="#/results" class="btn-primary"
+               style="text-decoration: none; margin-top: 10px; display: inline-block;">Повернутися до списку</a>
+        </div>
+    </section>
+
+    <!-- Сторінка 404 (Маршрут не знайдено) -->
+    <section v-else class="quiz-card" style="text-align: center; padding: 40px 20px;">
+        <h2 style="font-size: 2.5rem; color: #e53e3e; margin-bottom: 10px;">404</h2>
+        <h3>Сторінку не знайдено</h3>
+        <p style="color: #718096; margin: 15px 0;">Запитувана сторінка не існує або була переміщена.</p>
+        <a href="#/" class="btn-primary" style="text-decoration: none; display: inline-block;">На головну 🏠</a>
+    </section>
+
 </main>
 
 <footer class="footer">
@@ -144,7 +181,7 @@
             <span class="footer__dot"></span>
             <p>Розробник: Студентка гр. ІП-54 Шейн Марія</p>
         </div>
-        <p class="footer__copy">&copy; 2026 quiz-app • Лабораторний практикум з веброзробки</p>
+        <p class="footer__copy">&copy; 2026 quiz-app</p>
     </div>
 </footer>
 

@@ -1,4 +1,4 @@
-console.log('script.js підключено успішно (Лабораторна 12 - Canvas Timer & Animation)!');
+console.log('script.js підключено успішно (Лабораторна 13 - SPA Hash Router)!');
 
 // Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
@@ -7,8 +7,10 @@ function decodeHTMLEntities(text) {
     return textArea.value;
 }
 
-// Функції роботи з localStorage
 const LOCAL_STORAGE_KEY = 'quiz_pulse_results';
+const DB_NAME = 'QuizPulseDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'results';
 
 function saveToLocalStorage(results) {
     try {
@@ -28,12 +30,6 @@ function loadFromLocalStorage() {
     }
 }
 
-// Функції роботи з IndexedDB
-const DB_NAME = 'QuizPulseDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'results';
-
-// Відкриття бази даних з обгорткою у Promise
 function openDB() {
     return new Promise((resolve, reject) => {
         if (!window.indexedDB) {
@@ -55,7 +51,6 @@ function openDB() {
     });
 }
 
-// додавання запису результату
 async function addResultDB(resultItem) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -70,7 +65,6 @@ async function addResultDB(resultItem) {
     });
 }
 
-// отримання всіх записів результатів
 async function getAllResultsDB() {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -83,7 +77,6 @@ async function getAllResultsDB() {
     });
 }
 
-// видалення запису за id
 async function deleteResultDB(id) {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -129,7 +122,7 @@ const QuizQuestion = {
         return {
             selectedIndex: null,
             submitted: false,
-            timeLimit: 15, // 15 секунд на відповідь
+            timeLimit: 15,
             timeLeft: 15,
             animationFrameId: null,
             startTime: null
@@ -141,7 +134,6 @@ const QuizQuestion = {
         }
     },
     methods: {
-        // Запуск анімаційного циклу
         startTimer() {
             this.stopTimer();
             this.timeLeft = this.timeLimit;
@@ -170,7 +162,6 @@ const QuizQuestion = {
                 this.animationFrameId = null;
             }
         },
-        // Малювання анімованого таймера на Canvas
         renderCanvasTimer() {
             const canvas = this.$refs.timerCanvas;
             if (!canvas) return;
@@ -183,14 +174,12 @@ const QuizQuestion = {
 
             ctx.clearRect(0, 0, width, height);
 
-            // Фонове сіре коло
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 6;
             ctx.stroke();
 
-            // Розрахунок кута дуги залишкового часу
             const progress = this.timeLeft / this.timeLimit;
             const startAngle = -Math.PI / 2;
             const endAngle = startAngle + (Math.PI * 2 * progress);
@@ -202,7 +191,6 @@ const QuizQuestion = {
                 strokeColor = '#dd6b20';
             }
 
-            // Кольорова анімована дуга
             if (progress > 0) {
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -212,7 +200,6 @@ const QuizQuestion = {
                 ctx.stroke();
             }
 
-            // Текст із кількістю секунд у центрі Canvas
             ctx.font = 'bold 16px Inter, sans-serif';
             ctx.fillStyle = strokeColor;
             ctx.textAlign = 'center';
@@ -325,6 +312,8 @@ const app = createApp({
     },
     data() {
         return {
+            currentRoute: '/',
+            currentRouteParamId: null,
             interactiveQuestions: [
                 {
                     question: 'Який протокол забезпечує надійну доставку зі встановленням з’єднання?',
@@ -372,9 +361,37 @@ const app = createApp({
                 const percentB = (b.score / b.total) * 100;
                 return percentB - percentA;
             });
+        },
+        // Обчислювальний розбір для детального маршруту /results/:id
+        selectedResultDetail() {
+            if (!this.currentRouteParamId) return null;
+            const targetId = Number(this.currentRouteParamId);
+            return this.savedResults.find(r => r.id === targetId) || null;
         }
     },
     methods: {
+        // Обробник зміни hash в URL
+        handleHashChange() {
+            const hashPath = location.hash.slice(1) || '/';
+            this.currentRouteParamId = null;
+
+            // Зіставлення маршрутів
+            if (hashPath.startsWith('/results/')) {
+                const parts = hashPath.split('/');
+                if (parts.length === 3 && parts[2]) {
+                    this.currentRoute = '/results/:id';
+                    this.currentRouteParamId = parts[2];
+                    return;
+                }
+            }
+
+            const validRoutes = ['/', '/quiz', '/results'];
+            if (validRoutes.includes(hashPath)) {
+                this.currentRoute = hashPath;
+            } else {
+                this.currentRoute = '/404';
+            }
+        },
         calcScorePercent(score, total) {
             if (!total) return 0;
             return Math.round((score / total) * 100);
@@ -415,7 +432,7 @@ const app = createApp({
                 this.savedResults = await getAllResultsDB();
             } catch (err) {
                 console.error('Помилка завантаження з IndexedDB:', err);
-                this.dbErrorMessage = 'Не вдалося відкрити IndexedDB. Режим приватного перегляду або обмеження браузера.';
+                this.dbErrorMessage = 'Не вдалося відкрити IndexedDB.';
                 this.savedResults = loadFromLocalStorage();
             }
         },
@@ -472,6 +489,10 @@ const app = createApp({
         }
     },
     async mounted() {
+        // Налаштування слухача подій hashchange для клієнтської маршрутизації
+        window.addEventListener('hashchange', () => this.handleHashChange());
+        this.handleHashChange();
+
         try {
             await migrateLocalStorageToIndexedDB();
             await this.loadResultsFromDB();
