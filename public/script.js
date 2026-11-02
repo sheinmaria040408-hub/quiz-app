@@ -454,16 +454,15 @@ const app = createApp({
         async fetchApiQuestions() {
             this.loading = true;
             this.errorMessage = '';
-            const TRIVIA_API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+            const LOCAL_NODE_API_URL = '/api/questions';
 
             try {
-                const response = await fetch(TRIVIA_API_URL);
+                const response = await fetch(LOCAL_NODE_API_URL);
                 if (!response.ok) throw new Error(`Сервер відповів кодом помилки ${response.status}`);
 
                 const data = await response.json();
-                if (data.response_code !== 0) throw new Error('API повернуло порожній результат');
 
-                const mapped = data.results.map((item) => {
+                const mapped = data.map((item) => {
                     const decodedCorrect = decodeHTMLEntities(item.correct_answer);
                     const decodedIncorrect = item.incorrect_answers.map(decodeHTMLEntities);
 
