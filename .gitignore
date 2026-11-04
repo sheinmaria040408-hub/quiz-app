@@ -1,5 +1,6 @@
 .idea/
 .vscode/
+node_modules/git rm -r --cached .
 .DS_Store
 Thumbs.db
 *.log

@@ -37,14 +37,26 @@
 
 <main class="main container" id="vue-app">
 
-    <!-- Стартовий екран (/) -->
+    <!-- Стартовий екран (/) з вибором категорії -->
     <section v-if="currentRoute === '/'" class="quiz-card" style="text-align: center; padding: 40px 20px;">
         <h2 style="font-size: 2rem; margin-bottom: 15px;">Ласкаво просимо до QuizPulse! 🎯</h2>
-        <p style="font-size: 1.1rem; color: #4a5568; max-width: 600px; margin: 0 auto 30px auto;">
-            Готові перевірити свої знання з комп'ютерних мереж та протоколів? На кожне запитання дається 15 секунд.
+        <p style="font-size: 1.1rem; color: #4a5568; max-width: 600px; margin: 0 auto 20px auto;">
+            Готові перевірити свої знання? Оберіть категорію та розпочніть вікторину. На кожне запитання дається 15 секунд.
         </p>
+
+        <!-- Вибір категорії -->
+        <div style="max-width: 420px; margin: 0 auto 25px auto; text-align: left;">
+            <label for="category-select" style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748;">
+                📂 Оберіть категорію тестування:
+            </label>
+            <select id="category-select" v-model="selectedCategory" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 1rem; background: white;">
+                <option value="local">Комп'ютерні мережі та протоколи </option>
+                <option value="opentrivia">Загальна ерудиція </option>
+            </select>
+        </div>
+
         <div style="display: flex; gap: 15px; justify-content: center;">
-            <a href="#/quiz" class="btn-primary"
+            <a href="#/quiz" @click="startQuiz" class="btn-primary"
                style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                 🚀 Розпочати тестування
             </a>

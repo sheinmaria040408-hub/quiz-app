@@ -1,6 +1,5 @@
 console.log('script.js підключено успішно (Лабораторна 13 - SPA Hash Router)!');
 
-// Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
@@ -314,7 +313,8 @@ const app = createApp({
         return {
             currentRoute: '/',
             currentRouteParamId: null,
-            interactiveQuestions: [
+            selectedCategory: 'local',
+            localQuestions: [
                 {
                     question: 'Який протокол забезпечує надійну доставку зі встановленням з’єднання?',
                     options: ['UDP', 'TCP', 'IP', 'ICMP'],
@@ -341,6 +341,7 @@ const app = createApp({
                     correctIndex: 1
                 }
             ],
+            interactiveQuestions: [],
             apiQuestionsList: [],
             currentQuestionIndex: 0,
             userScore: 0,
@@ -362,7 +363,6 @@ const app = createApp({
                 return percentB - percentA;
             });
         },
-        // Обчислювальний розбір для детального маршруту /results/:id
         selectedResultDetail() {
             if (!this.currentRouteParamId) return null;
             const targetId = Number(this.currentRouteParamId);
@@ -370,12 +370,10 @@ const app = createApp({
         }
     },
     methods: {
-        // Обробник зміни hash в URL
         handleHashChange() {
             const hashPath = location.hash.slice(1) || '/';
             this.currentRouteParamId = null;
 
-            // Зіставлення маршрутів
             if (hashPath.startsWith('/results/')) {
                 const parts = hashPath.split('/');
                 if (parts.length === 3 && parts[2]) {
@@ -387,6 +385,9 @@ const app = createApp({
 
             const validRoutes = ['/', '/quiz', '/results'];
             if (validRoutes.includes(hashPath)) {
+                if (hashPath === '/quiz' && this.currentRoute !== '/quiz') {
+                    this.startQuiz();
+                }
                 this.currentRoute = hashPath;
             } else {
                 this.currentRoute = '/404';
@@ -451,6 +452,14 @@ const app = createApp({
             this.userScore = 0;
             this.quizFinished = false;
         },
+        async startQuiz() {
+            this.resetQuiz();
+            if (this.selectedCategory === 'local') {
+                this.interactiveQuestions = [...this.localQuestions];
+            } else {
+                await this.fetchApiQuestions();
+            }
+        },
         async fetchApiQuestions() {
             this.loading = true;
             this.errorMessage = '';
@@ -479,7 +488,6 @@ const app = createApp({
 
                 this.apiQuestionsList = mapped;
                 this.interactiveQuestions = mapped;
-                this.resetQuiz();
             } catch (err) {
                 console.error(err);
                 this.errorMessage = 'Не вдалося завантажити питання з сервера. Перевірте зʼєднання з інтернетом.';
@@ -489,7 +497,6 @@ const app = createApp({
         }
     },
     async mounted() {
-        // Налаштування слухача подій hashchange для клієнтської маршрутизації
         window.addEventListener('hashchange', () => this.handleHashChange());
         this.handleHashChange();
 
@@ -501,7 +508,7 @@ const app = createApp({
             this.dbErrorMessage = 'Помилка доступу до локального сховища IndexedDB.';
         }
 
-        this.fetchApiQuestions();
+        this.interactiveQuestions = [...this.localQuestions];
     }
 });
 
