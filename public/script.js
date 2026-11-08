@@ -2,9 +2,9 @@ console.log('script.js підключено успішно (Лабораторн
 
 // Helper function to decode HTML entities
 function decodeHTMLEntities(text) {
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
+    if (!text) return '';
+    const doc = new DOMParser().parseFromString(String(text), 'text/html');
+    return doc.documentElement.textContent;
 }
 
 const LOCAL_STORAGE_KEY = 'quiz_pulse_results';
